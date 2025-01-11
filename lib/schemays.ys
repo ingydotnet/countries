@@ -1,4 +1,4 @@
---- !yamlscript/v0
+!yamlscript/v0
 
 ns: schemays
 
@@ -100,8 +100,9 @@ defn mktype-map(name pair):
         loop [[key type] *pair] pair:seq, new map:
           new =:
             key opt =:
-              if key.ends?('?'):
-                -[key.replace(/\?$/) true]
+              re-opt =: /\ +\?$/
+              if key =~ re-opt:
+                -[key.replace(re-opt) true]
                  [key false]
             val =: new.$key
             type =: type:string?.if(type:dsl-type type)
@@ -146,9 +147,4 @@ defn mktypes(specs):
       else: die()
 
     key val =: spec:first
-    foo =: val:first
-    if foo:map? && (foo:keys.0 == '-list'):
-      then:
-        mklist key: foo.get('-list')
-      else:
-        mktype key: val
+    mktype key: val

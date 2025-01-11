@@ -1,17 +1,18 @@
---- !yamlscript/v0
+!yamlscript/v0
 
-use: schemays
-use: my-sets
+use schemays:
+require schemays: => s
+use my-sets:
 
-schemays/mktypes::
+s/mktypes::
 - name: country
   pair:
-    name:       /\w+/
-    area:       0.0..
-    population: 0..
-    incomeTax?: 0.0..100.0
-    climate?:   +climates
-    planet?:    +planets
+    name       : /\w+/
+    area       : 0.0..
+    population : 0..
+    incomeTax ?: 0.0..100.0
+    climate   ?: +climates
+    planet    ?: +planets
 
 - name: countries
   list: country

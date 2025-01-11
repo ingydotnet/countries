@@ -3,7 +3,6 @@
 require ys::taptest: :all
 
 test::
-#-------------------------------------------------------------------------------
 - cmnd: ys -Y file.yml
   want: |
     countries:

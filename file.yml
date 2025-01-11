@@ -1,9 +1,12 @@
---- !yamlscript/v0/data
+!yamlscript/v0/data
 
-:: use(my-schema)
+::
+  use my-schema:
+
+n1 =:: foo
 
 countries: !:countries
-- name: foo
+- name:: n1
   population: 1000
   area: 42334.11
   climate: Foggy wet.
