@@ -1,5 +1,35 @@
 --- !yamlscript/v0
 
+ns: sets
+
+climates =::
+- Tropical
+- Mediterranean
+- Desert
+- Tundra
+- Temperate
+- Subarctic
+- Savanna
+- Alpine
+- Oceanic
+- Monsoon
+- Foggy wet.
+
+planets =::
+- Mercury
+- Venus
+- Earth
+- Mars
+- Jupiter
+- Saturn
+- Uranus
+- Neptune
+
+ns: main
+
+
+--- !yamlscript/v0
+
 ns: schemays
 
 defn validate(val checks err='Validation error'):
@@ -17,17 +47,60 @@ defn mktype(name fns):
         f(val) || die("failed $name")
       =>: val
 
+defn mktype-map(name pair):
+  intern NS name:symbol:
+    fn(map):
+      when-not map?(map):
+        die: "type '$name' failed - not a map"
+      new =:
+        loop [[key type] *pair] pair:seq, new map:
+          if key.!:
+            then: new
+            else:
+              key opt =:
+                if key.ends?('?'):
+                  -[key.replace(/\?$/) true]
+                   [key false]
+              val =: new.$key
+              if opt:
+                if val:nil?:
+                  then:
+                    recur: pair new
+                  else:
+                    type: val
+                    recur: pair dissoc(new key)
+                if val:nil?:
+                  then:
+                    die: "missing key '$key'"
+                  else:
+                    type: val
+                    recur: pair dissoc(new key)
+      when new.?:
+        die: "mapping has unknown keys: ($(new:keys.join(' ')))"
+      =>: map
+
+
+
+      # die if keys remain in val
+
 defn mklist(name check):
   intern NS name:symbol:
     fn(vals):
       if vals:coll?:
         each val vals:
-          check: val
+          call check: val
         else:
           die: "Failed $name. Not a list: $val"
 
 defn mktypes(specs):
   each spec specs:
+    ks =: spec:keys
+    cond:
+      ks.has?('must'): mktype(spec.name spec.must)
+      ks.has?('pair'): mktype-map(spec.name spec.pair)
+      ks.has?('list'): mklist(spec.name spec.list)
+      else: die()
+
     key val =: spec:first
     foo =: val:first
     if foo:map? && (foo:keys.0 == '-list'):
@@ -43,29 +116,32 @@ ns: main    # XXX
 --- !yamlscript/v0
 
 schemays/mktypes::
-- non-empty-string?:
-  - ! string?
-  - ! comp(not empty?)
-- positive-int?:
-  - ! int?
-  - ! gt(0)
-- positive-num?:
-  - ! number?
-  - ! gt(0)
-
+- name: non-empty-string
+  must::
+    -[string? comp(not empty?)]
+- name: positive-int
+  must::
+    -[int? gt(0)]
+- name: positive-num
+  must::
+    -[number? gt(0)]
 
 
 --- !yamlscript/v0
 
 schemays/mktypes::
-- country:
-  - ! \(_.name:non-empty-string?)
-  - ! \(_.area:positive-num?)
-  - ! \(_.population:positive-int?)
+- name: country
+  pair:
+    name:: non-empty-string
+    area:: positive-num
+    population:: positive-int
+    incomeTax?:: \(0 <= _ <= 100)
+    climate?:: \(_.in?(sets/climates))
+    planet?:: \(_.in?(sets/planets))
 
 schemays/mktypes::
-- countries:
-  - -list:: country
+- name: countries
+  list: country
 
 
 --- !yamlscript/v0/data
@@ -75,7 +151,7 @@ countries: !:countries
 #   sides: [3,4,5]
 
 - name: foo
-  population: 1000
+  population: x1000
   area: 42334.11
   climate: Foggy wet.
 
@@ -87,4 +163,4 @@ countries: !:countries
 - name: baz
   population: 100
   area: 1234.432
-  planet: mars
+  planet: Mars
