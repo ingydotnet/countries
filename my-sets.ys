@@ -1,0 +1,26 @@
+--- !yamlscript/v0
+
+defn climates(x):
+  in? x::
+  - Tropical
+  - Mediterranean
+  - Desert
+  - Tundra
+  - Temperate
+  - Subarctic
+  - Savanna
+  - Alpine
+  - Oceanic
+  - Monsoon
+  - Foggy wet.
+
+defn planets(x):
+  in? x::
+  - Mercury
+  - Venus
+  - Earth
+  - Mars
+  - Jupiter
+  - Saturn
+  - Uranus
+  - Neptune
