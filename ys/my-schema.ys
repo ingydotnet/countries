@@ -1,18 +1,15 @@
 !yamlscript/v0
 
 use schemays:
-require schemays: => s
+require schemays: => T
 use my-sets:
 
-s/mktypes::
-- name: country
-  pair:
-    name       : /\w+/
-    area       : 0.0..
-    population : 0..
-    incomeTax ?: 0.0..100.0
-    climate   ?: +climates
-    planet    ?: +planets
+country =: !:T/map:
+  name       : /\w+/
+  area       : 0.0..
+  population : 0..
+  incomeTax ?: 0.0..100.0
+  climate   ?: +climate
+  planet    ?: +planet
 
-- name: countries
-  list: country
+countries =: !:T/list: +country

@@ -2,14 +2,33 @@
 
 ns: schemays
 
-dsl =::
-  int-rng:: /^(-?\d+)?\.\.(-?\d+)?$/
-  flt-rng:: /^(-?\d+\.\d+)?\.\.(-?\d+\.\d+)?$/
-  type-ref:: /^\+(\w+(?:-\w+)*)$/
-  regex:: /^\/(.*)\/$/
+re-int-rng  =: /^(-?\d+)?\.\.(-?\d+)?$/
+re-flt-rng  =: /^(-?\d+\.\d+)?\.\.(-?\d+\.\d+)?$/
+re-type-ref =: /^\+(\w+(?:-\w+)*)$/
+re-regex    =: /^\/(.*)\/$/
 
-defn mk-int-rng(rng):
-  m =: rng =~ dsl.int-rng
+defn get-int-rng(rng):
+  m =: rng =~ re-int-rng
+  m x y =: m
+  when-not x || y:
+    die: "Range must have start or end number"
+  x =: x && x:N
+  y =: y && y:N
+  when x && y && (x >= y):
+    die "$x is not less than $y"
+  defn fun(f):
+    fn(n):
+      when-not n:int?:
+        die: "$n is not an integer"
+      when-not f(n):
+        die: "$n is not in range $rng"
+  cond:
+    not(x): fun(\(_ <= y))
+    not(y): fun(\(_ >= x))
+    else:   fun(\(x <= _ <= y))
+
+defn get-flt-rng(rng):
+  m =: rng =~ re-flt-rng
   m x y =: m
   when-not x || y:
     die: "Range must have start or end number"
@@ -20,8 +39,6 @@ defn mk-int-rng(rng):
   fun =:
     fn(f):
       fn(n):
-        when-not n:int?:
-          die: "$n is not an integer"
         when-not f(n):
           die: "$n is not in range $rng"
   cond:
@@ -29,26 +46,7 @@ defn mk-int-rng(rng):
     not(y): fun(\(_ >= x))
     else:   fun(\(x <= _ <= y))
 
-defn mk-flt-rng(rng):
-  m =: rng =~ dsl.flt-rng
-  m x y =: m
-  when-not x || y:
-    die: "Range must have start or end number"
-  x =: x && x:N
-  y =: y && y:N
-  when x && y && (x >= y):
-    die "$x is not less than $y"
-  fun =:
-    fn(f):
-      fn(n):
-        when-not f(n):
-          die: "$n is not in range $rng"
-  cond:
-    not(x): fun(\(_ <= y))
-    not(y): fun(\(_ >= x))
-    else:   fun(\(x <= _ <= y))
-
-defn mk-type-ref(ref):
+defn get-type-ref(ref):
   fn(x):
     name =: ref.subs(1)
     call(name x) ||:
@@ -56,8 +54,8 @@ defn mk-type-ref(ref):
         Failed to validate type '$name' for:
         $x
 
-defn mk-str-rgx(rgx):
-  m =: rgx =~ dsl.regex
+defn get-str-rgx(rgx):
+  m =: rgx =~ re-regex
   m r =: m
   rs =: "^$r$"
   r =: qr(rs)
@@ -71,80 +69,58 @@ defn mk-str-rgx(rgx):
         String: "$s"
         Does not match: $rs
 
-defn dsl-type(s):
-  cond:
-    s =~ dsl.int-rng: mk-int-rng(s)
-    s =~ dsl.flt-rng: mk-flt-rng(s)
-    s =~ dsl.type-ref: mk-type-ref(s)
-    s =~ dsl.regex: mk-str-rgx(s)
-    else: die("Bad schemays type spec:\ '$s'")
+defn get-dsl-type(s):
+  condp \(%2 =~ %1) s:
+    re-int-rng: get-int-rng(s)
+    re-flt-rng: get-flt-rng(s)
+    re-type-ref: get-type-ref(s)
+    re-regex: get-str-rgx(s)
+    die: "Bad schemays type spec:\ '$s'"
 
-defn mktype(name fns):
-  intern NS name:symbol:
-    fn(val):
-      each f fns:
-        f(val) ||:
-          die: |
-            Failed type '$name' validation:
-            $val
-      =>: val
+defn map(spec):
+  fn(map):
+    when-not map?(map):
+      die: |
+        Failed type '$name' check - not a map:
+        $map
+    new =:
+      pairs =: spec:seq
+      loop [[key type] *pair] pairs, new map:
+        new =:
+          key opt =:
+            re-opt =: /\ +\?$/
+            if key =~ re-opt:
+              -[key.replace(re-opt) true]
+               [key false]
+          val =: new.$key
+          type =: type:string?.if(type:get-dsl-type type)
+          if val:nil?:
+            if-not opt:
+              die: |
+                Missing key '$key' in:
+                $map
+              else: new
+            else:
+              type: val
+              dissoc new: key
+        if pair.?:
+          recur: pair new
+          else: new
+    if new.?:
+      die: |
+        Mapping has unknown keys:
+        $(yaml/dump(new:keys):chomp)
+      else: map
 
-defn mktype-map(name pair):
-  intern NS name:symbol:
-    fn(map):
-      when-not map?(map):
-        die: |
-          Failed type '$name' check - not a map:
-          $map
-      new =:
-        loop [[key type] *pair] pair:seq, new map:
-          new =:
-            key opt =:
-              re-opt =: /\ +\?$/
-              if key =~ re-opt:
-                -[key.replace(re-opt) true]
-                 [key false]
-            val =: new.$key
-            type =: type:string?.if(type:dsl-type type)
-            if opt:
-              if val:nil?:
-                then: new
-                else:
-                  type: val
-                  dissoc new: key
-              if val:nil?:
-                die: |
-                  Missing key '$key' in:
-                  $map
-                else:
-                  type: val
-                  dissoc new: key
-          if pair.?:
-            recur: pair new
-            else: new
-      when new.?:
-        die: |
-          Mapping has unknown keys:
-          $(yaml/dump(new:keys):chomp)
-      =>: map
+defn list(check):
+  check =: check.replace(/^\+/):value
+  fn(vals):
+    if vals:coll?:
+      each val vals:
+        call check: val
+      else:
+        die: "Failed $name. Not a list: $val"
 
-defn mklist(name check):
-  intern NS name:symbol:
-    fn(vals):
-      if vals:coll?:
-        each val vals:
-          call check: val
-        else:
-          die: "Failed $name. Not a list: $val"
-
-defn mktypes(specs):
-  each spec specs:
-    ks =: spec:keys
-    cond:
-      ks.has?('must'): mktype(spec.name spec.must)
-      ks.has?('pair'): mktype-map(spec.name spec.pair)
-      ks.has?('list'): mklist(spec.name spec.list)
-      else: die()
-
-    key val =: spec:first
-    mktype key: val
+defn enum(spec):
+  fn(val):
+    val.in?(spec)

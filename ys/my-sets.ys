@@ -1,26 +1,27 @@
 !yamlscript/v0
 
-defn climates(x):
-  in? x::
-  - Tropical
-  - Mediterranean
-  - Desert
-  - Tundra
-  - Temperate
-  - Subarctic
-  - Savanna
-  - Alpine
-  - Oceanic
-  - Monsoon
-  - Foggy wet.
+use schemays:
+require schemays: => T
 
-defn planets(x):
-  in? x::
-  - Mercury
-  - Venus
-  - Earth
-  - Mars
-  - Jupiter
-  - Saturn
-  - Uranus
-  - Neptune
+climate =: !:T/enum:
+- Tropical
+- Mediterranean
+- Desert
+- Tundra
+- Temperate
+- Subarctic
+- Savanna
+- Alpine
+- Oceanic
+- Monsoon
+- Foggy wet.
+
+planet =: !:T/enum:
+- Mercury
+- Venus
+- Earth
+- Mars
+- Jupiter
+- Saturn
+- Uranus
+- Neptune

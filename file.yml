@@ -1,12 +1,10 @@
 !yamlscript/v0/data
 
 ::
-  use my-schema:
-
-n1 =:: foo
+  use: my-schema
 
 countries: !:countries
-- name:: n1
+- name: foo
   population: 1000
   area: 42334.11
   climate: Foggy wet.
@@ -20,3 +18,25 @@ countries: !:countries
   population: 100
   area: 1234.432
   planet: Mars
+
+
+# !ys v0:
+#
+# ::
+#   use: my-schema
+#
+# countries: !:countries
+# - name: foo
+#   population: 1000
+#   area: 42334.11
+#   climate: Foggy wet.
+#
+# - name: bar
+#   population: 2000
+#   area: 44242
+#   incomeTax: 55
+#
+# - name: baz
+#   population: 100
+#   area: 1234.432
+#   planet: Mars

@@ -36,7 +36,7 @@ test::
   what: err
   want: |
     Runtime error:
-    Failed to validate type 'planets' for:
+    Failed to validate type 'planet' for:
     Marzzz
 
 done:

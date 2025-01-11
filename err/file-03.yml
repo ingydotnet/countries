@@ -1,6 +1,7 @@
 !yamlscript/v0/data
 
-:: use(my-schema)
+::
+  use: my-schema
 
 countries: !:countries
 - name: foo
