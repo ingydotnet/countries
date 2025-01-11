@@ -1,0 +1,90 @@
+--- !yamlscript/v0
+
+ns: schemays
+
+defn validate(val checks err='Validation error'):
+  checks =: checks:seqable?.if(checks [checks])
+  mapv _ checks:
+    fn(check):
+      when-not check(val):
+        die: err
+  =>: val
+
+defn mktype(name fns):
+  intern NS name:symbol:
+    fn(val):
+      each f fns:
+        f(val) || die("failed $name")
+      =>: val
+
+defn mklist(name check):
+  intern NS name:symbol:
+    fn(vals):
+      if vals:coll?:
+        each val vals:
+          check: val
+        else:
+          die: "Failed $name. Not a list: $val"
+
+defn mktypes(specs):
+  each spec specs:
+    key val =: spec:first
+    foo =: val:first
+    if foo:map? && (foo:keys.0 == '-list'):
+      then:
+        mklist key: foo.get('-list')
+      else:
+        mktype key: val
+
+ns: main    # XXX
+
+
+
+--- !yamlscript/v0
+
+schemays/mktypes::
+- non-empty-string?:
+  - ! string?
+  - ! comp(not empty?)
+- positive-int?:
+  - ! int?
+  - ! gt(0)
+- positive-num?:
+  - ! number?
+  - ! gt(0)
+
+
+
+--- !yamlscript/v0
+
+schemays/mktypes::
+- country:
+  - ! \(_.name:non-empty-string?)
+  - ! \(_.area:positive-num?)
+  - ! \(_.population:positive-int?)
+
+schemays/mktypes::
+- countries:
+  - -list:: country
+
+
+--- !yamlscript/v0/data
+
+countries: !:countries
+# - type: Triangle
+#   sides: [3,4,5]
+
+- name: foo
+  population: 1000
+  area: 42334.11
+  climate: Foggy wet.
+
+- name: bar
+  population: 2000
+  area: 44242
+  incomeTax: 55
+
+- name: baz
+  population: 100
+  area: 1234.432
+  planet: mars
