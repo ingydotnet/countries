@@ -3,6 +3,9 @@
 :: use(my-schema)
 
 countries: !:countries
+- type: Triangle
+  sides: [3,4,5]
+
 - name: foo
   population: 1000
   area: 42334.11

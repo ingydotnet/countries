@@ -16,4 +16,4 @@ countries: !:countries
 - name: baz
   population: 100
   area: 1234.432
-  planet: Mars
+  planet: Marzzz
