@@ -4,7 +4,7 @@ require ys::taptest: :all
 
 test::
 #-------------------------------------------------------------------------------
-- cmnd: ys -Y countries.yml
+- cmnd: ys -Y file.yml
   want: |
     countries:
     - name: foo
@@ -20,20 +20,20 @@ test::
       area: 1234.432
       planet: Mars
 
-- cmnd: ys -Y countries-err1.yml
+- cmnd: ys -Y err/file-01.yml
   what: err
   want: |
     Runtime error:
     Missing key 'name' in:
     {type Triangle, sides [3 4 5]}
 
-- cmnd: ys -Y countries-err2.yml
+- cmnd: ys -Y err/file-02.yml
   what: err
   want: |
     Runtime error:
     -1000 is not in range 0..
 
-- cmnd: ys -Y countries-err3.yml
+- cmnd: ys -Y err/file-03.yml
   what: err
   want: |
     Runtime error:
