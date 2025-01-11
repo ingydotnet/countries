@@ -1,7 +1,7 @@
 SHELL := bash
 
 ROOT := $(shell pwd)
-export YSPATH := $(ROOT):$(ROOT)/lib:$(ROOT)/ys
+export YSPATH := $(ROOT)/lib:$(ROOT)/schema
 
 default:
 
