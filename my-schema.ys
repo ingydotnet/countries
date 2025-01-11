@@ -13,6 +13,5 @@ schemays/mktypes::
     climate?:   +climates
     planet?:    +planets
 
-schemays/mktypes::
 - name: countries
   list: country
